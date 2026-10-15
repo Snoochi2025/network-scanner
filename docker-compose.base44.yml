@@ -1,19 +1,28 @@
 # Base44 sandbox environment for the Network Scanner.
 #
 # What this project needs (read from the source):
-#   - Python 3 only. `network_scanner.py` imports just `socket` from the standard
-#     library, so there is no requirements.txt, no lockfile and no build step.
+#   - Python 3 only. `scanner.py`, `network_scanner.py` and `web_app.py` import
+#     just the standard library (`socket`, `http.server`, `json`), so there is no
+#     requirements.txt, no lockfile, no image build step and nothing to install.
 #   - No database, cache or queue.
 #   - No external service, so no credentials/secrets are required.
 #
-# It is a one-shot console script, not a web application: it prints its result
-# and exits. The service below therefore runs from the cloned source over a bind
-# mount (so edits are picked up on the next run without rebuilding anything) and
-# deliberately has no automatic restart.
+# The service runs from the cloned source over a bind mount, so edits to the
+# Python files and the pages in `static/` are picked up without rebuilding.
 services:
-  scanner:
+  web:
     image: python:3.12-slim
     working_dir: /app
     volumes:
       - ./:/app
-    command: ["python", "network_scanner.py"]
+    command: ["python", "web_app.py"]
+    ports:
+      - "3000:3000"
+    restart: on-failure
+    healthcheck:
+      # python:3.12-slim has no curl/wget, so probe the page with urllib instead.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

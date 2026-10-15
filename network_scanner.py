@@ -1,31 +1,21 @@
-import socket
+"""Command line interface for the Network Scanner."""
+
+import scanner
 
 print("=======================")
 print("  Network Scanner")
 print("=======================")
 
 target = "127.0.0.1"
-print("Scanning target:",target)
-ports = range(1, 101)
-services = {
-    22: "SSH",
-    80: "HTTP",
-    443: "HTTPS"
-}
-open_ports = 0
+print("Scanning target:", target)
 
-for port in ports:
-    sock = socket.socket()
-    sock.settimeout(0.1)
-    result = sock.connect_ex((target, port))
-    sock.close()
-    if result == 0:
-       open_ports += 1
-       service = services.get(port, "Unknown")
-       print("Port", port, "is open - Service:", service)
+open_ports = scanner.scan_ports(target, 1, 100)
+
+for result in open_ports:
+    print("Port", result["port"], "is open - Service:", result["service"])
 
 print("===================================")
-print("Total open ports found:", open_ports)
+print("Total open ports found:", len(open_ports))
 
-if open_ports == 0:
+if not open_ports:
     print("No open ports were found.")

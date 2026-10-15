@@ -57,6 +57,20 @@ py network_scanner.py
 This scanner is designed for educational purposes and scans localhost (127.0.0.1) only. Only scan systems you own or have explicit permission to test.
 
 
+## Web Interface
+
+The scanner is also available as an interactive page, where you can choose the
+target host and port range and run a scan from the browser.
+
+```bash
+docker compose -f docker-compose.base44.yml up
+```
+
+Then open <http://localhost:3000> and press **Scan**.
+
+The scanning logic lives in `scanner.py` and is shared by the command line script
+and the web page, so both always give the same results.
+
 ## Example Output
 
 The following output was produced when scanning my local computer:

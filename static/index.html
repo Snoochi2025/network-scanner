@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <h1>Network Scanner</h1>
+      <p class="tagline">Check which TCP ports are open on a host.</p>
+    </header>
+
+    <form id="scan-form" class="panel">
+      <div class="field">
+        <label for="target">Target host</label>
+        <input id="target" name="target" type="text" value="127.0.0.1" spellcheck="false" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="start">Start port</label>
+        <input id="start" name="start" type="number" min="1" max="65535" value="1">
+      </div>
+
+      <div class="field">
+        <label for="end">End port</label>
+        <input id="end" name="end" type="number" min="1" max="65535" value="100">
+      </div>
+
+      <button id="scan-button" type="submit">Scan</button>
+    </form>
+
+    <section id="status" class="status" aria-live="polite"></section>
+
+    <section id="results" class="panel results" hidden>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Port</th>
+            <th scope="col">Service</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </section>
+
+    <p class="note">Service names are the common associations for a port, not a verified result. Only scan systems you own or have explicit permission to test.</p>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
