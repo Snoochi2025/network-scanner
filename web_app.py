@@ -99,14 +99,26 @@ def build_scan_result(query):
 
 class ScanHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        self.respond(include_body=True)
+
+    def do_HEAD(self):
+        # Proxies and health probes use HEAD; without this the base class
+        # answers 501 Unsupported method.
+        self.respond(include_body=False)
+
+    def respond(self, include_body):
         parsed = urlparse(self.path)
 
         if parsed.path == "/api/scan":
-            self.handle_scan(parse_qs(parsed.query))
+            if include_body:
+                self.handle_scan(parse_qs(parsed.query))
+            else:
+                # A HEAD must not start a scan; report only that the endpoint exists.
+                self.send_json({}, include_body=False)
             return
 
         relative = "index.html" if parsed.path in ("/", "/index.html") else parsed.path.lstrip("/")
-        self.send_static(relative)
+        self.send_static(relative, include_body=include_body)
 
     def handle_scan(self, query):
         try:
@@ -117,11 +129,11 @@ class ScanHandler(BaseHTTPRequestHandler):
 
         self.send_json(payload)
 
-    def send_static(self, relative):
+    def send_static(self, relative, include_body=True):
         candidate = (STATIC_DIR / relative).resolve()
 
         if STATIC_DIR not in candidate.parents or not candidate.is_file():
-            self.send_json({"error": "Not found"}, status=404)
+            self.send_json({"error": "Not found"}, status=404, include_body=include_body)
             return
 
         body = candidate.read_bytes()
@@ -131,15 +143,17 @@ class ScanHandler(BaseHTTPRequestHandler):
         # The page is read from disk on every request, so edits show up on reload.
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(body)
+        if include_body:
+            self.wfile.write(body)
 
-    def send_json(self, payload, status=200):
+    def send_json(self, payload, status=200, include_body=True):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if include_body:
+            self.wfile.write(body)
 
 
 def main():
